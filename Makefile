@@ -14,7 +14,7 @@ LD_FLAGS := -X github.com/evcc-io/evcc/server.Version=$(VERSION) -X github.com/e
 BUILD_ARGS := -trimpath -ldflags='$(LD_FLAGS)'
 
 # docker
-DOCKER_IMAGE := evcc/evcc
+DOCKER_IMAGE := makkie2002/evcc4fr33
 DOCKER_TAG := testing
 PLATFORM := linux/amd64,linux/arm64,linux/arm/v6
 
