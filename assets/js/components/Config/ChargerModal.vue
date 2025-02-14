@@ -257,7 +257,7 @@ export default {
 		},
 		sponsorTokenRequired() {
 			const list = this.template?.Requirements?.EVCC || [];
-			return list.includes("sponsorship") && !this.isSponsor;
+			return false && (list.includes("sponsorship") && !this.isSponsor);
 		},
 		apiData() {
 			return {
