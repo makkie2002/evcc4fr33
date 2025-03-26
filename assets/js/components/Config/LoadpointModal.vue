@@ -1,12 +1,13 @@
 <template>
 	<GenericModal
 		id="loadpointModal"
+		ref="modal"
 		:title="modalTitle"
 		data-testid="loadpoint-modal"
 		:fade="fade"
-		@open="open"
-		@opened="opened"
-		@close="close"
+		@open="onOpen"
+		@opened="onOpened"
+		@close="onClose"
 	>
 		<form ref="form" class="container mx-0 px-0" @submit.prevent="isNew ? create() : update()">
 			<FormRow
@@ -476,6 +477,7 @@
 						class="ms-3 mb-5"
 						:label="$t('config.loadpoint.pollIntervalLabel')"
 						:help="$t('config.loadpoint.pollIntervalHelp')"
+						:danger="$t('config.loadpoint.pollIntervalDanger')"
 					>
 						<PropertyField
 							id="loadpointPollInterval"
@@ -600,7 +602,7 @@ export default {
 		meters: { type: Array, default: () => [] },
 		circuits: { type: Array, default: () => [] },
 	},
-	emits: ["updated", "openMeterModal", "openChargerModal", "close", "opened"],
+	emits: ["updated", "openMeterModal", "openChargerModal", "opened"],
 	data() {
 		return {
 			isModalVisible: false,
@@ -771,16 +773,18 @@ export default {
 			}
 			this.saving = false;
 		},
-		open() {
+		onOpen() {
 			this.isModalVisible = true;
 		},
-		opened() {
+		onOpened() {
 			this.$emit("opened");
 		},
-		close() {
-			this.$emit("close");
+		onClose() {
 			this.showAllSelected = false;
 			this.isModalVisible = false;
+		},
+		close() {
+			this.$refs.modal.close();
 		},
 		editCharger() {
 			this.$emit("openChargerModal", this.values.charger);
