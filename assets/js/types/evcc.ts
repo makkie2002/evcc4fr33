@@ -22,6 +22,13 @@ export enum CURRENCY {
 	USD = "USD",
 	DKK = "DKK",
 }
+export interface Battery {
+	power: number;
+	soc: number;
+	controllable: boolean;
+	capacity: number; // 0 when not specified
+	title?: string;
+}
 
 export interface Vehicle {
 	name: string;
@@ -37,13 +44,6 @@ export type Timeout = ReturnType<typeof setInterval> | null;
 export interface Tariff {
 	rates: Rate[];
 	lastUpdate: Date;
-}
-
-// data from api with string-based timestamps
-export interface RateRaw {
-	start: string;
-	end: string;
-	value: number;
 }
 
 export interface Rate {

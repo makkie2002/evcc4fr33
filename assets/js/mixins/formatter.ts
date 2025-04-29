@@ -57,7 +57,12 @@ export default defineComponent({
 				value = watt / 1_000_000;
 			}
 			if (d === undefined) {
-				d = POWER_UNIT.KW === unit || POWER_UNIT.MW === unit || 0 === watt ? 1 : 0;
+				d =
+					POWER_UNIT.KW === unit ||
+					POWER_UNIT.MW === unit ||
+					(POWER_UNIT.W !== unit && 0 === watt)
+						? 1
+						: 0;
 			}
 			return `${new Intl.NumberFormat(this.$i18n?.locale, {
 				style: "decimal",
@@ -135,6 +140,19 @@ export default defineComponent({
 			}
 			return result;
 		},
+		fmtDurationLong(seconds: number) {
+			// @ts-expect-error - Intl.DurationFormat is a new API not yet in TS types, see https://github.com/microsoft/TypeScript/issues/60608
+			if (!Intl.DurationFormat) {
+				// old browser fallback
+				return this.fmtDuration(seconds);
+			}
+			const hours = Math.floor(seconds / 3600);
+			const minutes = Math.floor((seconds % 3600) / 60);
+
+			// @ts-expect-error - Intl.DurationFormat is a new API not yet in TS types, see https://github.com/microsoft/TypeScript/issues/60608
+			const formatter = new Intl.DurationFormat(this.$i18n?.locale, { style: "long" });
+			return formatter.format({ minutes, hours });
+		},
 		fmtDayString(date: Date) {
 			const YY = `${date.getFullYear()}`;
 			const MM = `${date.getMonth() + 1}`.padStart(2, "0");
@@ -195,6 +213,12 @@ export default defineComponent({
 			}).format(date);
 
 			return `${weekday} ${hour}`.trim();
+		},
+		fmtHourMinute(date: Date) {
+			return new Intl.DateTimeFormat(this.$i18n?.locale, {
+				hour: "numeric",
+				minute: "numeric",
+			}).format(date);
 		},
 		fmtFullDateTime(date: Date, short: boolean) {
 			return new Intl.DateTimeFormat(this.$i18n?.locale, {
