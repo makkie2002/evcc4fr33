@@ -22,7 +22,7 @@ import (
 
 var (
 	eta          = float32(0.9)  // efficiency of the battery charging/discharging
-	batteryPower = float32(6000) // power of the battery in W
+	batteryPower = float32(6000) // default power of the battery in W
 
 	updated time.Time
 )
@@ -75,19 +75,13 @@ func (site *Site) optimizerUpdate(battery []measurement) error {
 		return nil
 	}
 
-	solarTariff := site.GetTariff(api.TariffUsageSolar)
-	solarRates, err := solarTariff.Rates()
-	if err != nil {
-		return err
-	}
-
-	solar := currentSlots(solarTariff)
-	grid := currentSlots(site.GetTariff(api.TariffUsageGrid))
-	feedIn := currentSlots(site.GetTariff(api.TariffUsageFeedIn))
+	solar := currentRates(site.GetTariff(api.TariffUsageSolar))
+	grid := currentRates(site.GetTariff(api.TariffUsageGrid))
+	feedIn := currentRates(site.GetTariff(api.TariffUsageFeedIn))
 
 	minLen := lo.Min([]int{len(grid), len(feedIn), len(solar)})
 	if minLen < 8 {
-		return fmt.Errorf("not enough slots for optimization: %d", minLen)
+		return fmt.Errorf("not enough slots for optimization: %d (grid=%d, feedIn=%d, solar=%d)", minLen, len(grid), len(feedIn), len(solar))
 	}
 
 	dt := timeSteps(minLen)
@@ -102,7 +96,7 @@ func (site *Site) optimizerUpdate(battery []measurement) error {
 
 	gt := site.homeProfile(minLen)
 
-	solarEnergy, err := ratesToEnergy(solarRates, firstSlotDuration)
+	solarEnergy, err := ratesToEnergy(solar, firstSlotDuration)
 	if err != nil {
 		return err
 	}
@@ -123,13 +117,18 @@ func (site *Site) optimizerUpdate(battery []measurement) error {
 	}
 
 	// end of horizon Wh value
-	pa := lo.Min(req.TimeSeries.PN)
+	pa := lo.Min(req.TimeSeries.PN) * eta * 0.99
 
 	details := responseDetails{
 		Timestamps: asTimestamps(dt),
 	}
 
 	for _, lp := range site.Loadpoints() {
+		// ignore disconnected loadpoints
+		if lp.GetStatus() == api.StatusA {
+			continue
+		}
+
 		bat := evopt.BatteryConfig{
 			ChargeFromGrid: lo.ToPtr(true),
 
@@ -184,18 +183,23 @@ func (site *Site) optimizerUpdate(battery []measurement) error {
 		dev := site.batteryMeters[i]
 
 		bat := evopt.BatteryConfig{
-			CMin:     0,
 			CMax:     batteryPower,
 			DMax:     batteryPower,
-			SMin:     0,
 			SMax:     float32(*b.Capacity * 1e3),         // Wh
 			SInitial: float32(*b.Capacity * *b.Soc * 10), // Wh
 			PA:       pa,
 		}
 
-		// TODO atm we cannot cannot control charge from grid speed
-		if _, ok := (dev.Instance()).(api.BatteryController); ok {
+		instance := dev.Instance()
+
+		if _, ok := instance.(api.BatteryController); ok {
 			bat.ChargeFromGrid = lo.ToPtr(true)
+		}
+
+		if m, ok := instance.(api.BatteryMaxPowerGetter); ok {
+			charge, discharge := m.GetMaxChargeDischargePower()
+			bat.CMax = float32(charge)
+			bat.DMax = float32(discharge)
 		}
 
 		req.Batteries = append(req.Batteries, bat)
@@ -400,7 +404,7 @@ func endOfHour(ts time.Time) time.Time {
 	return ts.Truncate(time.Hour).Add(time.Hour)
 }
 
-func currentSlots(tariff api.Tariff) []api.Rate {
+func currentRates(tariff api.Tariff) api.Rates {
 	if tariff == nil {
 		return nil
 	}
@@ -410,9 +414,10 @@ func currentSlots(tariff api.Tariff) []api.Rate {
 		return nil
 	}
 
-	now := now.BeginningOfHour()
+	// filter past slots
+	now := time.Now()
 	return lo.Filter(rates, func(slot api.Rate, _ int) bool {
-		return !slot.End.Before(now) // filter past slots
+		return slot.End.After(now)
 	})
 }
 
