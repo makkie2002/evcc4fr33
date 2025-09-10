@@ -15,7 +15,7 @@ jobs:
     name: Publish Docker :release
     needs:
       - call-build-workflow
-    runs-on: latest-ubuntu
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
