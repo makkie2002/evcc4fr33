@@ -49,10 +49,11 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
 
   apt:
+    if: false
     name: Github & APT
     needs:
       - call-build-workflow
-    runs-on: depot-ubuntu-24.04-arm
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -111,10 +112,11 @@ jobs:
         run: make apt-release
 
   demo:
+    if: false
     name: Demo
     needs:
       - docker
-    runs-on: depot-ubuntu-24.04-arm
+    runs-on: ubuntu-latest
     env:
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
     steps:
@@ -123,10 +125,11 @@ jobs:
       - run: flyctl deploy --local-only --config packaging/fly.toml
 
   hassio:
+    if: false
     name: Hassio Addon
     needs:
       - docker
-    runs-on: depot-ubuntu-24.04-arm
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
