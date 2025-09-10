@@ -9,7 +9,7 @@ on:
 jobs:
   call-build-workflow:
     if: startsWith(github.ref, 'refs/tags')
-    uses: evcc-io/evcc/.github/workflows/default.yml@master
+    uses: makkie_2002/evcc4free/.github/workflows/default.yml@master
 
   docker:
     name: Publish Docker :release
