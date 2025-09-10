@@ -15,7 +15,7 @@ jobs:
     name: Publish Docker :release
     needs:
       - call-build-workflow
-    runs-on: depot-ubuntu-24.04-arm
+    runs-on: latest-ubuntu
 
     steps:
       - uses: actions/checkout@v4
