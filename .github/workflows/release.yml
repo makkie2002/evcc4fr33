@@ -12,6 +12,7 @@ jobs:
     uses: makkie2002/evcc4fr33/.github/workflows/default.yml@master
 
   docker:
+    if: false
     name: Publish Docker :release
     needs:
       - call-build-workflow
