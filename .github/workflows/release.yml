@@ -8,7 +8,7 @@ on:
 
 jobs:
   call-build-workflow:
-    if: startsWith(github.ref, 'refs/tags')
+    #if: startsWith(github.ref, 'refs/tags')
     uses: makkie2002/evcc4fr33/.github/workflows/default.yml@master
 
   docker:
