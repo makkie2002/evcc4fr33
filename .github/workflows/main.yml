@@ -1,0 +1,4 @@
+test-job:
+  runs-on: ubuntu-latest
+  steps:
+    - run: echo "Started successfully on ubuntu-latest"
