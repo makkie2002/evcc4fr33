@@ -12,7 +12,7 @@ jobs:
     uses: makkie2002/evcc4fr33/.github/workflows/default.yml@master
 
   docker:
-    if: false
+    if: true
     name: Publish Docker :release
     needs:
       - call-build-workflow
@@ -37,7 +37,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            evcc/evcc
+            makkie2002/evcc4fr33
 
       - name: Publish
         uses: docker/build-push-action@v6
