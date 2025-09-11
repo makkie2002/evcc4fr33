@@ -293,7 +293,7 @@ export default defineComponent({
 			);
 		},
 		sponsorTokenRequired() {
-			const requirements = this.template?.Requirements as Requirements | undefined;
+			// const requirements = this.template?.Requirements as Requirements | undefined;
 			// return false && (requirements?.EVCC?.includes("sponsorship") && !this.isSponsor);
 			return false
 		},
