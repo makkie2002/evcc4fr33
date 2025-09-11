@@ -294,7 +294,7 @@ export default defineComponent({
 		},
 		sponsorTokenRequired() {
 			const requirements = this.template?.Requirements as Requirements | undefined;
-			return this.isSponsor && (requirements?.EVCC?.includes("sponsorship") && !this.isSponsor);
+			return this.isSponsor && requirements?.EVCC?.includes("sponsorship") && !this.isSponsor;
 			// return false
 		},
 		apiData() {
