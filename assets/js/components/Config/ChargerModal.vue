@@ -293,9 +293,9 @@ export default defineComponent({
 			);
 		},
 		sponsorTokenRequired() {
-			// const requirements = this.template?.Requirements as Requirements | undefined;
-			// return false && (requirements?.EVCC?.includes("sponsorship") && !this.isSponsor);
-			return false
+			const requirements = this.template?.Requirements as Requirements | undefined;
+			return this.isSponsor && (requirements?.EVCC?.includes("sponsorship") && !this.isSponsor);
+			// return false
 		},
 		apiData() {
 			const data: Record<string, any> = {
