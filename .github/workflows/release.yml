@@ -50,8 +50,8 @@ jobs:
           push: true
           build-args: |
             RELEASE=1
-          tags:
-            ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
   apt:
     if: false
