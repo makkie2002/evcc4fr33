@@ -141,7 +141,7 @@ jobs:
     name: UI
     permissions:
       contents: read
-    runs-on: ubuntu_latest
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v5
