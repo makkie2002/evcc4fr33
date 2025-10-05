@@ -13,6 +13,9 @@ jobs:
   call-build-workflow:
     #if: startsWith(github.ref, 'refs/tags')
     uses: makkie2002/evcc4fr33/.github/workflows/default.yml@master
+    permissions:
+      contents: read
+      actions: write
 
   docker:
     if: true
@@ -109,7 +112,7 @@ jobs:
       - name: Create Github Release
         uses: goreleaser/goreleaser-action@v6
         with:
-          version: latest
+          version: '~> v2'
           args: release --clean
         env:
           # use RELEASE_DEPLOY_TOKEN for access to evcc-io/homebrew-tap
@@ -159,7 +162,6 @@ jobs:
           repository: evcc-io/hassio-addon
           token: ${{ secrets.HASSIO_DEPLOY_TOKEN }}
           path: ./hassio
-          persist-credentials: false
 
       - name: Update version
         run: |
