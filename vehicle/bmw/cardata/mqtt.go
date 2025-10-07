@@ -10,7 +10,9 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/eclipse/paho.mqtt.golang/packets"
 	"github.com/evcc-io/evcc/util"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/oauth2"
 )
 
@@ -70,17 +72,31 @@ func (v *MqttConnector) run(ctx context.Context, ts oauth2.TokenSource) {
 			continue
 		}
 
-		bo.Reset()
-
 		if err := v.runMqtt(ctx, token); err != nil {
 			v.log.ERROR.Println(err)
+
+			// don't reset backoff
+			if errors.Is(err, packets.ErrorRefusedBadUsernameOrPassword) {
+				continue
+			}
 		}
+
+		bo.Reset()
 	}
 }
 
 func (v *MqttConnector) runMqtt(ctx context.Context, token *oauth2.Token) error {
 	gcid := TokenExtra(token, "gcid")
 	idToken := TokenExtra(token, "id_token")
+
+	var claims jwt.RegisteredClaims
+	parsed, err := jwt.ParseWithClaims(idToken, &claims, nil)
+	if err != nil && !errors.Is(err, jwt.ErrTokenUnverifiable) {
+		return fmt.Errorf("get %w for %s", err, idToken)
+	}
+	idExpiry, _ := parsed.Claims.GetExpirationTime()
+
+	v.log.DEBUG.Printf("connect streaming (using gcid %s/ id_token %s, IDT valid: %v, AT valid: %v)", gcid, idToken, idExpiry.Round(time.Second), token.Expiry.Round(time.Second))
 
 	paho := mqtt.NewClient(
 		mqtt.NewClientOptions().
@@ -95,7 +111,7 @@ func (v *MqttConnector) runMqtt(ctx context.Context, token *oauth2.Token) error 
 	} else if err := t.Error(); err != nil {
 		return fmt.Errorf("connect: %w", err)
 	}
-	defer paho.Disconnect(0)
+	defer paho.Disconnect(1000)
 
 	topic := fmt.Sprintf("%s/#", gcid)
 
